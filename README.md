@@ -2,25 +2,20 @@
 
 🎓 I'm a 2nd-year Information Technology student at **UNEC (Azerbaijan State University of Economics)**.
 
-💻 I'm passionate about software development and enjoy building modern web and mobile applications.
+💻 I'm passionate about software development and enjoy turning ideas into real-world applications.
 
-### 🚀 Technologies & Skills
+### 🚀 What I'm Interested In
 
-**Frontend**
-- HTML, CSS, JavaScript
-- TypeScript
-- React, Next.js
-- React Native
+- 🌐 **Web Development** – Building modern and responsive web applications.
+- 📱 **Mobile Development** – Exploring cross-platform mobile app development.
+- ⚙️ **Backend Development** – Working with server-side logic, APIs, and authentication.
+- 🗄️ **Database Management** – Designing and working with databases.
 
-**Backend**
-- Node.js
+### 🔨 What I'm Currently Doing
 
-**Other Skills**
-- Python
-- SQL
-- IT Fundamentals
-
-
+- Building personal projects to improve my development skills.
+- Exploring new technologies and development tools.
+- Learning by creating practical applications and solving real-world problems.
 
 ### 🛠️ Languages and Tools
 
@@ -34,3 +29,9 @@
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![SQL](https://img.shields.io/badge/SQL-4479A1?style=for-the-badge&logo=postgresql&logoColor=white)
+
+
+
+
+
+
