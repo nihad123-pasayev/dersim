@@ -1,0 +1,384 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap&subset=latin-ext");
+
+.reg-page,
+.reg-page *,
+.reg-page *::before,
+.reg-page *::after {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.reg-main {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.reg-container {
+  margin: 0 auto;
+}
+
+.reg-grid > * {
+  min-width: 0;
+}
+
+.reg-page {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --navy: #061a3d;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e2e8f0;
+  --danger: #dc2626;
+
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color: var(--text);
+  
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 36px 36px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 36px 36px,
+    radial-gradient(circle at 15% 8%, #14468f 0, rgba(20, 70, 143, 0) 45%),
+    linear-gradient(145deg, #0b2d63 0%, #061a3d 100%);
+
+}
+
+  
+  
+
+.reg-page::before,
+.reg-page::after {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  box-shadow:
+    0 0 0 70px rgba(59, 130, 246, 0.05),
+    0 0 0 140px rgba(59, 130, 246, 0.04);
+  pointer-events: none;
+}
+.reg-page::before,
+.reg-page::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 760px;
+  height: 760px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow:
+    0 0 0 100px rgba(255, 255, 255, 0.02),
+    0 0 0 200px rgba(255, 255, 255, 0.015);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.reg-page::before {
+  left: -420px;
+}
+.reg-page::after {
+  right: -420px;
+}
+
+.reg-main {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 20px 24px;
+}
+
+.reg-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.reg-brand__mark {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  color: #5fd0ff;
+}
+
+.reg-brand__mark svg {
+  width: 100%;
+  height: 100%;
+}
+
+.reg-brand__name {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* Mərkəzdəki kart */
+.reg-container {
+  width: 100%;
+  max-width: 640px;
+  padding: 36px 40px 32px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow:
+    0 24px 60px rgba(10, 47, 102, 0.14),
+    0 2px 6px rgba(10, 47, 102, 0.06);
+}
+
+.reg-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 26px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+}
+.reg-back svg {
+  width: 16px;
+  height: 16px;
+}
+.reg-back:hover {
+  color: var(--primary);
+}
+
+.reg-kicker {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.reg-title {
+  margin: 10px 0 8px;
+  font-size: 36px;
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+.reg-sub {
+  margin: 0 0 28px;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+/* Qridi */
+.reg-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px 16px;
+}
+.reg-field--full {
+  grid-column: 1 / -1;
+}
+
+.reg-field label {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.reg-field label small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.reg-shell {
+  position: relative;
+}
+.reg-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.reg-shell input,
+.reg-shell select {
+  width: 100%;
+  height: 56px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: #fbfcfe;
+  font: inherit;
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+.reg-shell--icon input {
+  padding-left: 46px;
+}
+.reg-shell input::placeholder {
+  color: #a0aec0;
+}
+.reg-shell input:focus,
+.reg-shell select:focus {
+  border-color: var(--primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.reg-shell select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+}
+
+/* Şərt qutusu */
+.reg-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 22px 0 18px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.reg-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+.reg-check b {
+  color: var(--primary);
+}
+
+.reg-error {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  color: var(--danger);
+  font-size: 13px;
+}
+
+/* Düymə */
+.reg-submit {
+  width: 100%;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: none;
+  border-radius: 18px;
+  background: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.32);
+  transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+}
+.reg-submit svg {
+  width: 18px;
+  height: 18px;
+}
+.reg-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 36px rgba(37, 99, 235, 0.4);
+}
+.reg-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.reg-login {
+  margin: 20px 0 0;
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+.reg-login a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+.reg-login a:hover {
+  text-decoration: underline;
+}
+
+/* Uğur kartı */
+.reg-success {
+  width: 100%;
+  max-width: 460px;
+  padding: 44px 32px;
+  text-align: center;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(10, 47, 102, 0.14);
+}
+.reg-success__icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 30px;
+  font-weight: 700;
+}
+.reg-success h2 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.reg-success p {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* Footer */
+.reg-footer {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  padding: 18px 20px 24px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Mobil */
+@media (max-width: 640px) {
+  .reg-container {
+    padding: 28px 20px 24px;
+    border-radius: 20px;
+  }
+  .reg-title {
+    font-size: 28px;
+  }
+  .reg-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,150 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  background: #0a2447;
+  color: #ffffff;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  font-family: "Inter", "Segoe UI", sans-serif;
+  scrollbar-width: none;      
+  -ms-overflow-style: none;
+  overflow-x: hidden;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;             
+}
+.sidebar * {
+  box-sizing: border-box;
+}
+
+
+
+.sidebar-brand .icon-img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 10px 12px;
+}
+
+.sidebar-brand .cite-name {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Menyu */
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ÖYRƏNMƏ / şəxsi başlıqları */
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #8ea5c9;
+  padding: 10px 14px 6px;
+}
+
+/* Müəllimdə Profil/Ayarlar-dan əvvəlki xətt */
+.sidebar-divider {
+  border: none;
+  border-top: 1px solid #1f3a66;
+  margin: 12px 4px;
+}
+
+/* Düymələr */
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.2;
+  transition: background 0.15s;
+}
+
+.sidebar-link svg {
+  flex-shrink: 0;
+  color: #ffffff;
+}
+
+.sidebar-link:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.sidebar-link.active {
+  background: #1e4a85;
+}
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform-origin: left center;
+  transition: transform 0.18s ease, color 0.18s ease, background 0.18s ease;
+}
+
+.sidebar-link svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  transition: color 0.18s ease;
+}
+
+.sidebar-link:hover {
+  color: #70d5ff;
+  background: rgba(112, 213, 255, 0.1);
+  transform: scale(1.04);
+}
+
+.sidebar-link:hover svg {
+  color: #70d5ff;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  box-shadow: 0 0 0 2px #0a2447;
+}
