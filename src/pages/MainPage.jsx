@@ -1,134 +1,24 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
-  Clock,
-  CalendarDays,
-  Bell,
-  MessageCircle,
-  Users,
-  BookOpen,
-  Plus,
-  Check,
-  ArrowRight,
-  UserPlus,
-  CalendarPlus,
-  TrendingUp,
-  Search,
-  MapPin,
-  GraduationCap,
-  ChevronLeft,
-  ChevronRight,
-  Trash2,
+  Clock, CalendarDays, Bell, MessageCircle, Users, BookOpen, Plus, Check,
+  ArrowRight, UserPlus, CalendarPlus, TrendingUp, Search, MapPin,
+  GraduationCap, ChevronLeft, ChevronRight, Trash2, BellOff, Inbox,
 } from "lucide-react";
 import Sidebar from "./Sidebar";
+import useUnreadMessages from "./useUnreadMessages";
 import { supabase } from "../supabaseClient";
 import "./MainPage.css";
-import useUnreadMessages from "./useUnreadMessages";
 
-/* ---------- nümunə data (sonra Supabase) ---------- */
-const sampleLessons = {
-  teacher: [
-    {
-      id: 1,
-      start: "09:00",
-      end: "10:00",
-      subject: "Riyaziyyat",
-      with: "Aysel Məmmədova",
-    },
-    {
-      id: 2,
-      start: "11:00",
-      end: "12:30",
-      subject: "Fizika",
-      with: "11-A qrupu",
-    },
-    {
-      id: 3,
-      start: "15:00",
-      end: "16:00",
-      subject: "Riyaziyyat",
-      with: "Orxan Quliyev",
-    },
-    {
-      id: 4,
-      start: "17:30",
-      end: "18:30",
-      subject: "Kimya",
-      with: "Leyla Əliyeva",
-    },
-  ],
-  student: [
-    {
-      id: 1,
-      start: "10:00",
-      end: "11:00",
-      subject: "Riyaziyyat",
-      with: "Nigar müəllimə",
-    },
-    {
-      id: 2,
-      start: "14:00",
-      end: "15:30",
-      subject: "Fizika",
-      with: "Rauf müəllim",
-    },
-    {
-      id: 3,
-      start: "17:00",
-      end: "18:00",
-      subject: "İngilis dili",
-      with: "Səbinə müəllimə",
-    },
-  ],
-};
+/* ---------- data (hələlik boş, sonra Supabase) ---------- */
+const lessons = []; // { id, start: "09:00", end: "10:00", subject, with }
+const messages = []; // { id, from, text, time, unread }
+const weekHours = [0, 0, 0, 0, 0, 0, 0]; // B.e → Baz
+const counts = { students: 0, weekLessons: 0, groups: 0 };
+/* ------------------------------------------------------- */
 
-const sampleMessages = [
-  {
-    id: 1,
-    from: "Aysel Məmmədova",
-    text: "Salam, sabahkı dərs saat neçədədir?",
-    time: "09:15",
-    unread: true,
-  },
-  {
-    id: 2,
-    from: "Orxan Quliyev",
-    text: "Tapşırığı göndərdim, baxarsınız.",
-    time: "Dünən",
-    unread: true,
-  },
-  {
-    id: 3,
-    from: "Leyla Əliyeva",
-    text: "Təşəkkür edirəm, çox kömək oldu!",
-    time: "Dünən",
-    unread: false,
-  },
-  {
-    id: 4,
-    from: "11-A qrupu",
-    text: "Dərsi cümə günü keçə bilərikmi?",
-    time: "Bazar ertəsi",
-    unread: false,
-  },
-];
-
-const sampleReminders = [
-  {
-    id: 1,
-    text: "Sabah üçün Fizika sınağı hazırla",
-    when: "Sabah",
-    done: false,
-  },
-  { id: 2, text: "Orxanın valideyni ilə danış", when: "Bu gün", done: false },
-  { id: 3, text: "Yeni materialları yüklə", when: "Cümə", done: true },
-];
-
-const weekLessons = [3, 2, 4, 0, 3, 1, 0]; // B.e → Baz (təqvimdə dərs günləri)
-const weekHours = [3, 2.5, 4, 0, 3, 1, 0];
 const dayNames = ["B.e", "Ç.a", "Çər", "C.a", "Cüm", "Şən", "Baz"];
 const avatarColors = ["#0ea5e9", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899"];
-/* -------------------------------------------------- */
 
 const toMin = (t) => {
   const [h, m] = t.split(":").map(Number);
@@ -151,12 +41,7 @@ const remainingText = (l, now) => {
 };
 
 const initials = (name) =>
-  (name || "?")
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  (name || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 
 const greetingFor = (now) => {
   if (now < 12 * 60) return "Sabahınız xeyir";
@@ -175,16 +60,24 @@ function MeAvatar({ src, full, size = 40, className = "" }) {
   );
 }
 
+function EmptyState({ icon: Icon, title, text }) {
+  return (
+    <div className="empty">
+      <span className="empty-icon">
+        <Icon size={22} />
+      </span>
+      <p className="empty-title">{title}</p>
+      {text && <p className="empty-text">{text}</p>}
+    </div>
+  );
+}
+
 function MiniCalendar() {
   const [offset, setOffset] = useState(0);
   const base = new Date();
   const view = new Date(base.getFullYear(), base.getMonth() + offset, 1);
   const first = (view.getDay() + 6) % 7; // bazar ertəsi = 0
-  const daysInMonth = new Date(
-    view.getFullYear(),
-    view.getMonth() + 1,
-    0,
-  ).getDate();
+  const daysInMonth = new Date(view.getFullYear(), view.getMonth() + 1, 0).getDate();
   const isThisMonth = offset === 0;
 
   const cells = [
@@ -192,30 +85,17 @@ function MiniCalendar() {
     ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
   ];
 
-  const title = view.toLocaleDateString("az-AZ", {
-    month: "long",
-    year: "numeric",
-  });
+  const title = view.toLocaleDateString("az-AZ", { month: "long", year: "numeric" });
 
   return (
     <section className="card">
       <div className="card-head">
-        <h2>
-          <CalendarDays size={18} /> Təqvim
-        </h2>
+        <h2><CalendarDays size={18} /> Təqvim</h2>
         <div className="cal-nav">
-          <button
-            type="button"
-            onClick={() => setOffset(offset - 1)}
-            aria-label="Əvvəlki ay"
-          >
+          <button type="button" onClick={() => setOffset(offset - 1)} aria-label="Əvvəlki ay">
             <ChevronLeft size={16} />
           </button>
-          <button
-            type="button"
-            onClick={() => setOffset(offset + 1)}
-            aria-label="Növbəti ay"
-          >
+          <button type="button" onClick={() => setOffset(offset + 1)} aria-label="Növbəti ay">
             <ChevronRight size={16} />
           </button>
         </div>
@@ -223,20 +103,13 @@ function MiniCalendar() {
       <p className="cal-title">{title}</p>
       <div className="cal-grid">
         {dayNames.map((d) => (
-          <span key={d} className="cal-dayname">
-            {d}
-          </span>
+          <span key={d} className="cal-dayname">{d}</span>
         ))}
         {cells.map((day, i) => {
           if (!day) return <span key={`e${i}`} />;
-          const weekday = (first + day - 1) % 7;
-          const hasLesson = weekLessons[weekday] > 0;
           const isToday = isThisMonth && day === base.getDate();
           return (
-            <span
-              key={day}
-              className={`cal-cell ${isToday ? "is-today" : ""} ${hasLesson ? "has-lesson" : ""}`}
-            >
+            <span key={day} className={`cal-cell ${isToday ? "is-today" : ""}`}>
               {day}
             </span>
           );
@@ -248,16 +121,10 @@ function MiniCalendar() {
 
 export default function MainPage() {
   const [role, setRole] = useState(null);
-  const unread = useUnreadMessages();
-  const [profile, setProfile] = useState({
-    name: "",
-    full: "",
-    fenn: "",
-    seher: "",
-    avatar: "",
-  });
-  const [reminders, setReminders] = useState(sampleReminders);
+  const [profile, setProfile] = useState({ name: "", full: "", fenn: "", seher: "", avatar: "" });
+  const [reminders, setReminders] = useState([]);
   const [newReminder, setNewReminder] = useState("");
+  const unread = useUnreadMessages();
   const [now, setNow] = useState(() => {
     const d = new Date();
     return d.getHours() * 60 + d.getMinutes();
@@ -289,116 +156,50 @@ export default function MainPage() {
   if (!role) return null;
 
   const base = role === "teacher" ? "/teacher" : "/student";
-  const lessons = sampleLessons[role];
-  const doneCount = lessons.filter(
-    (l) => lessonStatus(l, now) === "done",
-  ).length;
+  const doneCount = lessons.filter((l) => lessonStatus(l, now) === "done").length;
   const nextLesson = lessons.find((l) => lessonStatus(l, now) !== "done");
   const todayIdx = (new Date().getDay() + 6) % 7;
   const maxHours = Math.max(...weekHours, 1);
   const totalHours = weekHours.reduce((a, b) => a + b, 0);
   const roleLabel =
     role === "teacher"
-      ? profile.fenn
-        ? `${profile.fenn} müəllimi`
-        : "Müəllim"
+      ? profile.fenn ? `${profile.fenn} müəllimi` : "Müəllim"
       : "Şagird";
 
   const today = new Date().toLocaleDateString("az-AZ", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
+    weekday: "long", day: "numeric", month: "long", year: "numeric",
   });
 
   const stats =
     role === "teacher"
       ? [
-          {
-            label: "Şagird",
-            value: 24,
-            note: "+2 bu ay",
-            icon: Users,
-            color: "#0ea5e9",
-          },
-          {
-            label: "Bu gün dərs",
-            value: lessons.length,
-            note: `${doneCount} keçib`,
-            icon: CalendarDays,
-            color: "#8b5cf6",
-          },
-          {
-            label: "Bu həftə dərs",
-            value: 14,
-            note: `${totalHours} saat`,
-            icon: BookOpen,
-            color: "#10b981",
-          },
-          {
-            label: "Oxunmamış mesaj",
-            value: unread,
-            note: "cavab gözləyir",
-            icon: MessageCircle,
-            color: "#f59e0b",
-          },
+          { label: "Şagird", value: counts.students, icon: Users, color: "#0ea5e9" },
+          { label: "Bu gün dərs", value: lessons.length, icon: CalendarDays, color: "#8b5cf6" },
+          { label: "Bu həftə dərs", value: counts.weekLessons, icon: BookOpen, color: "#10b981" },
+          { label: "Oxunmamış mesaj", value: unread, icon: MessageCircle, color: "#f59e0b" },
         ]
       : [
-          {
-            label: "Bu gün dərs",
-            value: lessons.length,
-            note: `${doneCount} keçib`,
-            icon: CalendarDays,
-            color: "#8b5cf6",
-          },
-          {
-            label: "Bu həftə dərs",
-            value: 9,
-            note: `${totalHours} saat`,
-            icon: BookOpen,
-            color: "#10b981",
-          },
-          {
-            label: "Qruplarım",
-            value: 2,
-            note: "aktiv qrup",
-            icon: Users,
-            color: "#0ea5e9",
-          },
-          {
-            label: "Oxunmamış mesaj",
-            value: unread,
-            note: "yeni mesaj",
-            icon: MessageCircle,
-            color: "#f59e0b",
-          },
+          { label: "Bu gün dərs", value: lessons.length, icon: CalendarDays, color: "#8b5cf6" },
+          { label: "Bu həftə dərs", value: counts.weekLessons, icon: BookOpen, color: "#10b981" },
+          { label: "Qruplarım", value: counts.groups, icon: Users, color: "#0ea5e9" },
+          { label: "Oxunmamış mesaj", value: unread, icon: MessageCircle, color: "#f59e0b" },
         ];
 
   const quick =
     role === "teacher"
       ? [
           { to: `${base}/students`, label: "Şagird əlavə et", icon: UserPlus },
-          {
-            to: `${base}/schedule`,
-            label: "Dərs əlavə et",
-            icon: CalendarPlus,
-          },
+          { to: `${base}/schedule`, label: "Dərs əlavə et", icon: CalendarPlus },
           { to: `${base}/messages`, label: "Mesaj yaz", icon: MessageCircle },
         ]
       : [
-          {
-            to: `${base}/schedule`,
-            label: "Dərs cədvəlim",
-            icon: CalendarDays,
-          },
+          { to: `${base}/schedule`, label: "Dərs cədvəlim", icon: CalendarDays },
           { to: `${base}/materials`, label: "Materiallar", icon: BookOpen },
           { to: `${base}/messages`, label: "Mesaj yaz", icon: MessageCircle },
         ];
 
   const toggleReminder = (id) =>
-    setReminders((r) =>
-      r.map((x) => (x.id === id ? { ...x, done: !x.done } : x)),
-    );
+    setReminders((r) => r.map((x) => (x.id === id ? { ...x, done: !x.done } : x)));
 
   const deleteReminder = (id) =>
     setReminders((r) => r.filter((x) => x.id !== id));
@@ -407,10 +208,7 @@ export default function MainPage() {
     e.preventDefault();
     const text = newReminder.trim();
     if (!text) return;
-    setReminders((r) => [
-      { id: Date.now(), text, when: "Bu gün", done: false },
-      ...r,
-    ]);
+    setReminders((r) => [{ id: Date.now(), text, when: "Bu gün", done: false }, ...r]);
     setNewReminder("");
   };
 
@@ -427,11 +225,7 @@ export default function MainPage() {
           </label>
 
           <div className="topbar-right">
-            <Link
-              to={`${base}/notifications`}
-              className="icon-btn"
-              aria-label="Bildirişlər"
-            >
+            <Link to={`${base}/notifications`} className="icon-btn" aria-label="Bildirişlər">
               <Bell size={20} />
               {unread > 0 && <i className="icon-dot" />}
             </Link>
@@ -456,7 +250,7 @@ export default function MainPage() {
             </h1>
             <p className="hero-sub">
               {lessons.length === 0
-                ? "Bu gün dərsin yoxdur, rahat gün."
+                ? "Bu gün üçün planlaşdırılmış dərsin yoxdur."
                 : `Bu gün ${lessons.length} dərsin var, ${doneCount}-i artıq keçib.`}
             </p>
             <div className="hero-actions">
@@ -477,9 +271,7 @@ export default function MainPage() {
                 <p className="hero-next-subject">{nextLesson.subject}</p>
                 <p className="hero-next-with">{nextLesson.with}</p>
                 <div className="hero-next-foot">
-                  <span>
-                    {nextLesson.start} - {nextLesson.end}
-                  </span>
+                  <span>{nextLesson.start} - {nextLesson.end}</span>
                   <strong>
                     {lessonStatus(nextLesson, now) === "live"
                       ? "Davam edir"
@@ -488,14 +280,17 @@ export default function MainPage() {
                 </div>
               </>
             ) : (
-              <p className="hero-next-with">Bu gün üçün dərs qalmayıb.</p>
+              <>
+                <p className="hero-next-subject">Dərs yoxdur</p>
+                <p className="hero-next-with">Yaxın vaxtda planlaşdırılmış dərs görünmür.</p>
+              </>
             )}
           </div>
         </section>
 
         {/* ---------- Say kartları ---------- */}
         <section className="stats">
-          {stats.map(({ label, value, note, icon: Icon, color }) => (
+          {stats.map(({ label, value, icon: Icon, color }) => (
             <div key={label} className="stat" style={{ "--c": color }}>
               <div className="stat-icon">
                 <Icon size={22} />
@@ -503,7 +298,6 @@ export default function MainPage() {
               <div>
                 <p className="stat-value">{value}</p>
                 <p className="stat-label">{label}</p>
-                <p className="stat-note">{note}</p>
               </div>
             </div>
           ))}
@@ -514,51 +308,52 @@ export default function MainPage() {
           <div className="col">
             <section className="card">
               <div className="card-head">
-                <h2>
-                  <CalendarDays size={18} /> Bu günün dərsləri
-                </h2>
-                <span className="chip">
-                  {doneCount}/{lessons.length} tamamlanıb
-                </span>
-              </div>
-
-              <div className="progress">
-                <div
-                  className="progress-bar"
-                  style={{
-                    width: `${lessons.length ? (doneCount / lessons.length) * 100 : 0}%`,
-                  }}
-                />
+                <h2><CalendarDays size={18} /> Bu günün dərsləri</h2>
+                {lessons.length > 0 && (
+                  <span className="chip">{doneCount}/{lessons.length} tamamlanıb</span>
+                )}
               </div>
 
               {lessons.length === 0 ? (
-                <p className="muted">Bu gün dərs yoxdur.</p>
+                <EmptyState
+                  icon={CalendarDays}
+                  title="Bu gün dərs yoxdur"
+                  text={
+                    role === "teacher"
+                      ? "Dərs cədvəlinə dərs əlavə etdikdə burada görünəcək."
+                      : "Müəllimin əlavə etdiyi dərslər burada görünəcək."
+                  }
+                />
               ) : (
-                <ul className="timeline">
-                  {lessons.map((l) => {
-                    const st = lessonStatus(l, now);
-                    return (
-                      <li key={l.id} className={`tl-item tl-${st}`}>
-                        <span className="tl-time">{l.start}</span>
-                        <span className="tl-dot" />
-                        <div className="tl-card">
-                          <div>
-                            <p className="tl-subject">{l.subject}</p>
-                            <p className="muted">{l.with}</p>
+                <>
+                  <div className="progress">
+                    <div
+                      className="progress-bar"
+                      style={{ width: `${(doneCount / lessons.length) * 100}%` }}
+                    />
+                  </div>
+                  <ul className="timeline">
+                    {lessons.map((l) => {
+                      const st = lessonStatus(l, now);
+                      return (
+                        <li key={l.id} className={`tl-item tl-${st}`}>
+                          <span className="tl-time">{l.start}</span>
+                          <span className="tl-dot" />
+                          <div className="tl-card">
+                            <div>
+                              <p className="tl-subject">{l.subject}</p>
+                              <p className="muted">{l.with}</p>
+                            </div>
+                            <div className="tl-right">
+                              <span className="muted small">{l.start} - {l.end}</span>
+                              <span className={`badge badge-${st}`}>{statusText[st]}</span>
+                            </div>
                           </div>
-                          <div className="tl-right">
-                            <span className="muted small">
-                              {l.start} - {l.end}
-                            </span>
-                            <span className={`badge badge-${st}`}>
-                              {statusText[st]}
-                            </span>
-                          </div>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
               )}
             </section>
 
@@ -567,24 +362,30 @@ export default function MainPage() {
 
               <section className="card">
                 <div className="card-head">
-                  <h2>
-                    <TrendingUp size={18} /> Dərs saatları
-                  </h2>
+                  <h2><TrendingUp size={18} /> Dərs saatları</h2>
                   <span className="chip">{totalHours} saat</span>
                 </div>
-                <div className="bars">
-                  {weekHours.map((h, i) => (
-                    <div key={i} className="bar-col">
-                      <div className="bar-track">
-                        <div
-                          className={`bar ${i === todayIdx ? "bar-today" : ""}`}
-                          style={{ height: `${(h / maxHours) * 100}%` }}
-                        />
+                {totalHours === 0 ? (
+                  <EmptyState
+                    icon={TrendingUp}
+                    title="Bu həftə dərs yoxdur"
+                    text="Dərs keçdikcə saatlar burada görünəcək."
+                  />
+                ) : (
+                  <div className="bars">
+                    {weekHours.map((h, i) => (
+                      <div key={i} className="bar-col">
+                        <div className="bar-track">
+                          <div
+                            className={`bar ${i === todayIdx ? "bar-today" : ""}`}
+                            style={{ height: `${(h / maxHours) * 100}%` }}
+                          />
+                        </div>
+                        <span className="bar-label">{dayNames[i]}</span>
                       </div>
-                      <span className="bar-label">{dayNames[i]}</span>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </div>
           </div>
@@ -604,14 +405,10 @@ export default function MainPage() {
 
               <div className="profile-tags">
                 {role === "teacher" && profile.fenn && (
-                  <span className="tag">
-                    <GraduationCap size={14} /> {profile.fenn}
-                  </span>
+                  <span className="tag"><GraduationCap size={14} /> {profile.fenn}</span>
                 )}
                 {profile.seher && (
-                  <span className="tag">
-                    <MapPin size={14} /> {profile.seher}
-                  </span>
+                  <span className="tag"><MapPin size={14} /> {profile.seher}</span>
                 )}
               </div>
 
@@ -622,52 +419,51 @@ export default function MainPage() {
 
             <section className="card">
               <div className="card-head">
-                <h2>
-                  <MessageCircle size={18} /> Son mesajlar
-                </h2>
-                {unread > 0 && (
-                  <span className="chip chip-hot">{unread} yeni</span>
-                )}
+                <h2><MessageCircle size={18} /> Son mesajlar</h2>
+                {unread > 0 && <span className="chip chip-hot">{unread} yeni</span>}
               </div>
-              <ul className="msgs">
-                {sampleMessages.map((m, i) => (
-                  <li key={m.id} className="msg">
-                    <span
-                      className="avatar"
-                      style={{
-                        background: avatarColors[i % avatarColors.length],
-                      }}
-                    >
-                      {initials(m.from)}
-                    </span>
-                    <div className="msg-body">
-                      <div className="msg-top">
+
+              {messages.length === 0 ? (
+                <EmptyState
+                  icon={Inbox}
+                  title="Mesajınız yoxdur"
+                  text="Yeni mesajlar burada görünəcək."
+                />
+              ) : (
+                <>
+                  <ul className="msgs">
+                    {messages.map((m, i) => (
+                      <li key={m.id} className="msg">
                         <span
-                          className={`msg-from ${m.unread ? "is-unread" : ""}`}
+                          className="avatar"
+                          style={{ background: avatarColors[i % avatarColors.length] }}
                         >
-                          {m.from}
+                          {initials(m.from)}
                         </span>
-                        <span className="muted small">{m.time}</span>
-                      </div>
-                      <p className="msg-text">{m.text}</p>
-                    </div>
-                    {m.unread && <i className="dot" />}
-                  </li>
-                ))}
-              </ul>
-              <Link to={`${base}/messages`} className="card-link">
-                Hamısına bax <ArrowRight size={15} />
-              </Link>
+                        <div className="msg-body">
+                          <div className="msg-top">
+                            <span className={`msg-from ${m.unread ? "is-unread" : ""}`}>{m.from}</span>
+                            <span className="muted small">{m.time}</span>
+                          </div>
+                          <p className="msg-text">{m.text}</p>
+                        </div>
+                        {m.unread && <i className="dot" />}
+                      </li>
+                    ))}
+                  </ul>
+                  <Link to={`${base}/messages`} className="card-link">
+                    Hamısına bax <ArrowRight size={15} />
+                  </Link>
+                </>
+              )}
             </section>
 
             <section className="card">
               <div className="card-head">
-                <h2>
-                  <Bell size={18} /> Xatırlatmalar
-                </h2>
-                <span className="chip">
-                  {reminders.filter((r) => !r.done).length} aktiv
-                </span>
+                <h2><Bell size={18} /> Xatırlatmalar</h2>
+                {reminders.length > 0 && (
+                  <span className="chip">{reminders.filter((r) => !r.done).length} aktiv</span>
+                )}
               </div>
 
               <form className="rem-form" onSubmit={addReminder}>
@@ -681,30 +477,38 @@ export default function MainPage() {
                 </button>
               </form>
 
-              <ul className="rems">
-                {reminders.map((r) => (
-                  <li key={r.id} className={`rem ${r.done ? "is-done" : ""}`}>
-                    <button
-                      type="button"
-                      className="check"
-                      onClick={() => toggleReminder(r.id)}
-                      aria-label="Tamamla"
-                    >
-                      {r.done && <Check size={14} />}
-                    </button>
-                    <span className="rem-text">{r.text}</span>
-                    <span className="badge badge-wait">{r.when}</span>
-                    <button
-                      type="button"
-                      className="rem-delete"
-                      onClick={() => deleteReminder(r.id)}
-                      aria-label="Sil"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {reminders.length === 0 ? (
+                <EmptyState
+                  icon={BellOff}
+                  title="Xatırlatma yoxdur"
+                  text="Yuxarıdan yeni xatırlatma əlavə edə bilərsən."
+                />
+              ) : (
+                <ul className="rems">
+                  {reminders.map((r) => (
+                    <li key={r.id} className={`rem ${r.done ? "is-done" : ""}`}>
+                      <button
+                        type="button"
+                        className="check"
+                        onClick={() => toggleReminder(r.id)}
+                        aria-label="Tamamla"
+                      >
+                        {r.done && <Check size={14} />}
+                      </button>
+                      <span className="rem-text">{r.text}</span>
+                      <span className="badge badge-wait">{r.when}</span>
+                      <button
+                        type="button"
+                        className="rem-delete"
+                        onClick={() => deleteReminder(r.id)}
+                        aria-label="Sil"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </section>
           </div>
         </div>

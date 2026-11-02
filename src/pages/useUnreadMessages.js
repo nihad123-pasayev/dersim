@@ -1,12 +1,7 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function useUnreadMessages() {
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    // müvəqqəti nümunə, sonra Supabase-dən oxunacaq
-    setCount(2);
-  }, []);
-
+  // sonra Supabase-dən oxunacaq
+  const [count] = useState(0);
   return count;
 }
