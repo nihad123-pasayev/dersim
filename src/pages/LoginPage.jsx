@@ -234,7 +234,7 @@ export default function LoginPage() {
       return;
     }
 
-    navigate("/anasehife");
+    navigate("/main");
   };
 
   return (
