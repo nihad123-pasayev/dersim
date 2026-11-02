@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "./Bothregister.css";
+import { authErrorText } from "../authErrors";
 
 const SINIFLER = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "Məzun"];
 const QRUPLAR = ["1", "2", "3", "4", "5"];
@@ -63,56 +64,70 @@ export default function StudentRegister() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    if (form.kod.length < 8) {
-      setError("Şifrə ən azı 8 simvol olmalıdır.");
-      return;
-    }
-    if (form.kod !== form.kodTekrar) {
-      setError("Şifrələr uyğun gəlmir.");
-      return;
-    }
+  const username = form.istifadeciAdi.trim();
+  const email = form.email.trim();
 
-    setLoading(true);
+  if (/\s/.test(username)) {
+    setError("İstifadəçi adında boşluq ola bilməz.");
+    return;
+  }
+  if (form.kod.length < 8) {
+    setError("Şifrə ən azı 8 simvol olmalıdır.");
+    return;
+  }
+  if (form.kod !== form.kodTekrar) {
+    setError("Şifrələr uyğun gəlmir.");
+    return;
+  }
 
-    const { data: available } = await supabase.rpc("username_available", {
-      p_istifadeci_adi: form.istifadeciAdi,
-    });
-    if (!available) {
-      setLoading(false);
-      setError("Bu istifadəçi adı artıq mövcuddur.");
-      return;
-    }
+  setLoading(true);
 
-    const { error: signUpError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.kod,
-      options: {
-        data: {
-          role: "student",
-          ad_soyad: form.adSoyad,
-          yas: form.yas,
-          sinif: form.sinif,
-          qrup: form.qrup,
-          telefon: form.telefon,
-          seher: form.seher,
-          istifadeci_adi: form.istifadeciAdi,
-        },
-      },
-    });
-
+  const { data: available, error: checkError } = await supabase.rpc(
+    "username_available",
+    { p_istifadeci_adi: username }
+  );
+  if (checkError) {
     setLoading(false);
+    setError("Yoxlama zamanı xəta baş verdi. Bir az sonra yenidən cəhd edin.");
+    return;
+  }
+  if (!available) {
+    setLoading(false);
+    setError("Bu istifadəçi adı artıq mövcuddur.");
+    return;
+  }
 
-    if (signUpError) {
-      setError(signUpError.message);
-      return;
-    }
+  const { error: signUpError } = await supabase.auth.signUp({
+    email,
+    password: form.kod,
+    options: {
+      emailRedirectTo: window.location.origin,
+      data: {
+        role: "student",
+        ad_soyad: form.adSoyad,
+        yas: form.yas,
+        sinif: form.sinif,
+        qrup: form.qrup,
+        telefon: form.telefon,
+        seher: form.seher,
+        istifadeci_adi: username,
+      },
+    },
+  });
 
-    setSuccess(true);
-    setTimeout(() => navigate("/"), 3000);
-  };
+  setLoading(false);
+
+  if (signUpError) {
+    setError(authErrorText(signUpError));
+    return;
+  }
+
+  setSuccess(true);
+  setTimeout(() => navigate("/"), 3000);
+};
 
   return (
     <div className="reg-page">

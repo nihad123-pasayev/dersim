@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "../supabaseClient";
 import "./LoginPage.css";
+import { authErrorText } from "../authErrors";
 
 function Logo({ light = false }) {
   return (
@@ -194,20 +195,46 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    const { data, error: loginError } = await supabase.rpc("login_check", {
-      p_istifadeci_adi: username,
-      p_sifre: password,
-    });
-    if (loginError || !data || data.length === 0) {
+
+    const name = username.trim();
+    if (!name || !password) {
+      setError("İstifadəçi adı və şifrəni yazın.");
+      return;
+    }
+
+    setLoading(true);
+
+    // 1) istifadəçi adından email tap
+    const { data: email, error: lookupError } = await supabase.rpc(
+      "get_email_by_username",
+      { p_username: name },
+    );
+
+    if (lookupError || !email) {
+      setLoading(false);
       setError("İstifadəçi adı və ya şifrə yanlışdır.");
       return;
     }
-    localStorage.setItem("dersim_user", JSON.stringify(data[0]));
-    navigate("/main");
+
+    // 2) Supabase Auth ilə giriş
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (signInError) {
+      setError(authErrorText(signInError));
+      return;
+    }
+
+    navigate("/anasehife");
   };
 
   return (
@@ -318,11 +345,13 @@ export default function LoginPage() {
 
             {error && <p className="form-error">{error}</p>}
 
-            <button className="submit-button" type="submit">
-              Daxil ol
-              <Icon>
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </Icon>
+            <button className="submit-button" type="submit" disabled={loading}>
+              {loading ? "Gözləyin..." : "Daxil ol"}
+              {!loading && (
+                <Icon>
+                  <path d="M5 12h14M13 6l6 6-6 6" />
+                </Icon>
+              )}
             </button>
           </form>
 

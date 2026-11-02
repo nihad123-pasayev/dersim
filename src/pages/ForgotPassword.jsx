@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase, isRecoveryLink, isLinkExpired } from "../supabaseClient";
 import "./ForgotPassword.css";
+import { authErrorText } from "../authErrors";
 
 function Icon({ children }) {
   return (
@@ -60,7 +61,7 @@ export default function ForgotPage() {
       redirectTo: `${window.location.origin}/forgot`,
     });
     setLoading(false);
-    if (error) return setError(error.message);
+    if (error) return setError(authErrorText(error));
     setSent(true);
   };
 
@@ -81,7 +82,7 @@ export default function ForgotPage() {
 
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
-    if (error) return setError(error.message);
+    if (error) return setError(authErrorText(error));
 
     await supabase.auth.signOut();
     setDone(true);
