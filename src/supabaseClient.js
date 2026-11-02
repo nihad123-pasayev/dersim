@@ -1,6 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// Supabase klienti yaranan kimi linkdəki hash/code-u silir,
+// ona görə məlumatı createClient-dən ƏVVƏL yadda saxlayırıq.
+const { hash, search, pathname } = window.location;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const isRecoveryLink =
+  pathname === "/forgot" &&
+  (hash.includes("type=recovery") || search.includes("code="));
+
+export const isLinkExpired =
+  pathname === "/forgot" &&
+  (hash.includes("error_code=otp_expired") || hash.includes("error=access_denied"));
+
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL,
+  import.meta.env.VITE_SUPABASE_ANON_KEY
+);

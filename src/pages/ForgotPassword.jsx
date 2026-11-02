@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { supabase } from "../supabaseClient";
+import { supabase, isRecoveryLink, isLinkExpired } from "../supabaseClient";
 import "./ForgotPassword.css";
 
 function Icon({ children }) {
@@ -34,15 +34,15 @@ function Field({ id, label, icon, children }) {
 
 export default function ForgotPage() {
   const navigate = useNavigate();
-  const [recovery, setRecovery] = useState(() =>
-    window.location.hash.includes("type=recovery")
-  );
+  const [recovery, setRecovery] = useState(isRecoveryLink);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [password2, setPassword2] = useState("");
   const [sent, setSent] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    isLinkExpired ? "Linkin müddəti bitib. Yeni link istəyin." : ""
+  );
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -69,10 +69,20 @@ export default function ForgotPage() {
     setError("");
     if (password.length < 8) return setError("Şifrə ən azı 8 simvol olmalıdır.");
     if (password !== password2) return setError("Şifrələr uyğun gəlmir.");
+
     setLoading(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setLoading(false);
+      setRecovery(false);
+      return setError("Linkin müddəti bitib. Yeni link istəyin.");
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (error) return setError(error.message);
+
     await supabase.auth.signOut();
     setDone(true);
     setTimeout(() => navigate("/"), 3000);
